@@ -52,7 +52,12 @@ def main():
     ap.add_argument("address")
     ap.add_argument("--chains", default=",".join(CHAINS))
     a = ap.parse_args()
-    keys = [k.strip() for k in a.chains.split(",") if k.strip() in CHAINS]
+    keys = [k.strip() for k in a.chains.split(",") if k.strip()]
+    unknown = [k for k in keys if k not in CHAINS]
+    if unknown:
+        ap.error(f"unknown chain(s): {', '.join(unknown)} (choose from: {', '.join(CHAINS)})")
+    if not keys:
+        ap.error("--chains must name at least one chain")
 
     with ThreadPoolExecutor(max_workers=len(keys)) as pool:
         futures = {k: pool.submit(check, k, a.address) for k in keys}
